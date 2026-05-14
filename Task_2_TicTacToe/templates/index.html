@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe AI Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            font-size: 16px;
+            font-weight: 600;
+            color: #764ba2;
+            min-height: 24px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .cell {
+            width: 100%;
+            aspect-ratio: 1;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #667eea;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .cell:hover:not(:disabled) {
+            background: #f9f9f9;
+            transform: scale(1.05);
+        }
+
+        .cell:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .cell:disabled {
+            cursor: not-allowed;
+            opacity: 1;
+        }
+
+        .cell.x {
+            color: #667eea;
+            font-weight: 900;
+        }
+
+        .cell.o {
+            color: #764ba2;
+            font-weight: 900;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-width: 150px;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .reset-btn:active {
+            transform: translateY(0);
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .info strong {
+            color: #667eea;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+            margin-left: 5px;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.6;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        .game-over {
+            animation: popIn 0.4s ease-out;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .cell {
+                font-size: 24px;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Tic-Tac-Toe AI</h1>
+            <p>Task 2 - CODSOFT AI Internship</p>
+            <p style="font-size: 12px; color: #999;">You are X | AI is O</p>
+        </div>
+
+        <div class="status" id="status">Game Started! Your turn</div>
+
+        <div class="game-board" id="gameBoard">
+            <button class="cell" data-index="0"></button>
+            <button class="cell" data-index="1"></button>
+            <button class="cell" data-index="2"></button>
+            <button class="cell" data-index="3"></button>
+            <button class="cell" data-index="4"></button>
+            <button class="cell" data-index="5"></button>
+            <button class="cell" data-index="6"></button>
+            <button class="cell" data-index="7"></button>
+            <button class="cell" data-index="8"></button>
+        </div>
+
+        <div class="button-group">
+            <button class="reset-btn" onclick="resetGame()">New Game</button>
+        </div>
+
+        <div class="info">
+            <strong>How to play:</strong><br>
+            Click on any empty cell to make your move. The AI will respond with an unbeatable strategy using the Minimax algorithm.
+        </div>
+    </div>
+
+    <script>
+        const cells = document.querySelectorAll('.cell');
+        const statusDiv = document.getElementById('status');
+        let gameActive = true;
+        let board = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];
+
+        // Initialize board from server
+        async function initBoard() {
+            try {
+                const response = await fetch('/board');
+                const data = await response.json();
+                board = data.board;
+                updateUI();
+            } catch (error) {
+                console.error('Error initializing board:', error);
+            }
+        }
+
+        // Handle cell click
+        cells.forEach(cell => {
+            cell.addEventListener('click', async function() {
+                if (!gameActive || this.textContent) return;
+
+                const index = this.dataset.index;
+                
+                // Disable all cells during AI thinking
+                cells.forEach(c => c.disabled = true);
+                statusDiv.textContent = 'AI is thinking' + '<span class="loading"></span>';
+
+                try {
+                    const response = await fetch('/move', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ position: parseInt(index) })
+                    });
+
+                    const data = await response.json();
+                    board = data.board;
+
+                    updateUI();
+
+                    // Handle game status
+                    if (data.status === 'human_win') {
+                        statusDiv.textContent = '🎉 You Won!';
+                        statusDiv.classList.add('game-over');
+                        gameActive = false;
+                    } else if (data.status === 'ai_win') {
+                        statusDiv.textContent = '🤖 AI Won!';
+                        statusDiv.classList.add('game-over');
+                        gameActive = false;
+                    } else if (data.status === 'draw') {
+                        statusDiv.textContent = '🤝 It\'s a Draw!';
+                        statusDiv.classList.add('game-over');
+                        gameActive = false;
+                    } else {
+                        statusDiv.textContent = 'Your turn';
+                        statusDiv.classList.remove('game-over');
+                    }
+
+                    // Re-enable cells
+                    cells.forEach(c => c.disabled = false);
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    statusDiv.textContent = 'Error! Try again';
+                    cells.forEach(c => c.disabled = false);
+                }
+            });
+        });
+
+        // Update UI
+        function updateUI() {
+            cells.forEach((cell, index) => {
+                cell.textContent = board[index] === ' ' ? '' : board[index];
+                cell.classList.remove('x', 'o');
+                if (board[index] === 'X') {
+                    cell.classList.add('x');
+                } else if (board[index] === 'O') {
+                    cell.classList.add('o');
+                }
+            });
+        }
+
+        // Reset game
+        async function resetGame() {
+            try {
+                const response = await fetch('/reset', { method: 'POST' });
+                const data = await response.json();
+                board = data.board;
+                gameActive = true;
+                statusDiv.textContent = 'Game Started! Your turn';
+                statusDiv.classList.remove('game-over');
+                updateUI();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('load', initBoard);
+    </script>
+</body>
+</html>
